@@ -10,21 +10,29 @@ import 'package:provider/provider.dart';
 
 import 'model_theme.dart';
 
+// Fonction asynchrone principale pour démarrer l'application
 Future<void> main() async {
+  // Assurez-vous que Flutter est initialisé
   WidgetsFlutterBinding.ensureInitialized();
+  // Initialise Firebase
   await Firebase.initializeApp();
+  // Initialise GetStorage pour la gestion du stockage local
   await Get.putAsync(() => GetStorage.init());
+  // Obtient le jeton FCM (Firebase Cloud Messaging)
   final fcmToken = await FirebaseMessaging.instance.getToken();
   print(fcmToken);
-  // Configure Firebase Messaging
+  // Configure Firebase Messaging pour gérer les messages en arrière-plan
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  // Lance l'application Flutter
   runApp(const MyApp());
 }
 
+// Fonction pour gérer les messages Firebase en arrière-plan
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print("Handling a background message: ${message.messageId}");
 }
 
+// Classe principale de l'application Flutter
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
@@ -33,19 +41,19 @@ class MyApp extends StatelessWidget {
     // Configure Firebase Messaging
     configureFirebaseMessaging();
     return ChangeNotifierProvider(
-        create: (_) => ModelTheme(),
-        child: Consumer<ModelTheme>(
-            builder: (context, ModelTheme themeNotifier, child) {
+      create: (_) => ModelTheme(),
+      child: Consumer<ModelTheme>(
+        builder: (context, ModelTheme themeNotifier, child) {
           return GetMaterialApp(
             title: 'Flutter Demo',
             theme: themeNotifier.isDark
                 ? ThemeData(
-                    brightness: Brightness.dark,
-                  )
+              brightness: Brightness.dark,
+            )
                 : ThemeData(
-                    brightness: Brightness.light,
-                    primaryColor: Colors.green,
-                    primarySwatch: Colors.green),
+                brightness: Brightness.light,
+                primaryColor: Colors.green,
+                primarySwatch: Colors.green),
             debugShowCheckedModeBanner: false,
             home: FutureBuilder(
               // Attend la fin de l'initialisation de Firebase
@@ -68,16 +76,21 @@ class MyApp extends StatelessWidget {
               },
             ),
           );
-        }));
+        },
+      ),
+    );
   }
 }
 
+// Fonction pour configurer Firebase Messaging
 void configureFirebaseMessaging() {
+  // Écoute les messages Firebase reçus lorsque l'application est en premier plan
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
     print('Received message: ${message.notification?.title}');
     // Traitez le message reçu ici selon vos besoins
   });
 
+  // Écoute les messages Firebase reçus lorsque l'application est ouverte à partir de la notification
   FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
     print('Opened app from notification: ${message.notification?.title}');
     // Traitez l'ouverture de l'application à partir de la notification ici selon vos besoins
